@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.5.1](https://github.com/paraspell/xcm-tools/compare/xcm-api-v14.5.0...xcm-api-v14.5.1) (2026-11-01)
+
+
+### Build System
+
+* Update to TS v7 🪄 ([4676609](https://github.com/paraspell/xcm-tools/commit/467660928ba2665335c69f2f56f72bc131a9be02))
+
 ## [14.5.0](https://github.com/paraspell/xcm-tools/compare/xcm-api-v14.4.4...xcm-api-v14.5.0) (2026-10-30)
 
 
