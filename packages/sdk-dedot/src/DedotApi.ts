@@ -818,7 +818,7 @@ class DedotApi<TCustomChain extends string = never> extends PolkadotApi<
 
     const destParaId = this.extractDestParaId(forwardedXcms);
 
-    if (this.hasXcmPaymentApiSupport(chain)) {
+    if (this.hasXcmPaymentApiSupport(chain) && asset) {
       const fee = await this.getXcmPaymentApiFee(
         chain,
         xcm,
@@ -845,13 +845,56 @@ class DedotApi<TCustomChain extends string = never> extends PolkadotApi<
       };
     }
 
+    const emittedEvents = result.value.emittedEvents ?? [];
+    const reversedEvents = [...emittedEvents].reverse();
+    const palletsWithIssued = ["Balances", "ForeignAssets", "Assets"];
+
+    const feeEvent =
+      (origin === "Mythos"
+        ? reversedEvents.find(
+            (event: any) =>
+              event.pallet === "AssetConversion" &&
+              event.palletEvent?.name === "SwapCreditExecuted",
+          )
+        : undefined) ??
+      reversedEvents.find(
+        (event: any) =>
+          palletsWithIssued.includes(event.pallet) &&
+          event.palletEvent?.name === "Issued",
+      ) ??
+      reversedEvents.find(
+        (event: any) =>
+          ["Balances", "ForeignAssets"].includes(event.pallet) &&
+          event.palletEvent?.name === "Minted",
+      ) ??
+      reversedEvents.find(
+        (event: any) =>
+          ["Currencies", "Tokens"].includes(event.pallet) &&
+          event.palletEvent?.name === "Deposited",
+      );
+
+    if (!feeEvent) {
+      return {
+        success: false,
+        dryRunError: {
+          reason: "Cannot determine destination fee. No Issued event found",
+        },
+        asset,
+      };
+    }
+
+    const feeAmount =
+      feeEvent.pallet === "AssetConversion"
+        ? feeEvent.palletEvent.data.amountIn
+        : feeEvent.palletEvent.data.amount;
+
     return {
-      success: false,
-      dryRunError: {
-        reason:
-          "Cannot determine destination fee. XcmPaymentApi is not supported by this chain",
-      },
+      success: true,
+      fee: BigInt(feeAmount),
       asset,
+      weight,
+      forwardedXcms,
+      destParaId,
     };
   }
 
