@@ -68,7 +68,7 @@ describe('getTransferableAmount', () => {
       api: mockApi,
       buildTx,
       origin: 'Astar',
-      destination: 'Astar',
+      destination: 'BifrostPolkadot',
       sender: 'validAddress',
       feeAsset: undefined,
       version: baseOptions.version,
@@ -223,7 +223,10 @@ describe('getTransferableAmount', () => {
 
     expect(result).toEqual([1000n - ed - fee, 500n - ed])
     expect(getOriginXcmFee).toHaveBeenCalledWith(
-      expect.objectContaining({ currency: currenciesOptions.currency })
+      expect.objectContaining({
+        currency: currenciesOptions.currency,
+        destination: 'BifrostPolkadot'
+      })
     )
   })
 
