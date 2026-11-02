@@ -35,15 +35,17 @@ export const computeOriginFee = (
         deliveryFees.push({ plancks, tokenSymbol });
       }
     }
+    const amountIn =
+      e.palletEvent?.data?.amount_in ?? e.palletEvent?.data?.amountIn;
+
     if (
       isFeeAsset &&
-      e.type === "AssetConversion" &&
-      e.value?.type === "SwapCreditExecuted" &&
-      e.value?.value &&
-      e.value.value.amount_in !== undefined &&
-      e.value.value.amount_in !== null
+      e.pallet === "AssetConversion" &&
+      e.palletEvent?.name === "SwapCreditExecuted" &&
+      amountIn !== undefined &&
+      amountIn !== null
     ) {
-      assetConversionFee += e.value.value.amount_in;
+      assetConversionFee += amountIn;
     }
   }
 
