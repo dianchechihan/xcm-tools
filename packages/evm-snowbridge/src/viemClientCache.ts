@@ -21,7 +21,25 @@ const cache = createClientCache<PublicClient>(
   async client => {
     await client.getBlockNumber()
   },
-  undefined,
+  async client => {
+    const transport = client.transport as unknown as {
+      value?: {
+        transports?: Array<{
+          value?: { getRpcClient?: () => { close?: () => void | Promise<void> } }
+        }>
+        getRpcClient?: () => { close?: () => void | Promise<void> }
+      }
+    }
+    const transports = transport.value?.transports ?? [transport]
+
+    for (const transport of transports) {
+      try {
+        await transport.value?.getRpcClient?.().close?.()
+      } catch {
+        // Continue closing the remaining transports if one fails.
+      }
+    }
+  },
   EXTENSION_MS
 )
 
