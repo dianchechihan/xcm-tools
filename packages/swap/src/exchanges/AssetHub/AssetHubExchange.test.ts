@@ -4,6 +4,7 @@ import {
   getNativeAssetSymbol,
   Parents,
   RoutingResolutionError,
+  ValidationError,
   type TLocation,
 } from '@paraspell/sdk-core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -58,6 +59,21 @@ describe('AssetHubExchange', () => {
   });
 
   describe('swapCurrency', () => {
+    it.each([undefined, 'invalid', '-1', '100'])(
+      'should throw ValidationError for invalid slippagePct: %s',
+      async (slippagePct) => {
+        const opts = {
+          ...baseSwapOptions,
+          slippagePct,
+        } as TGenericSwapOptions<unknown, unknown, unknown>;
+
+        await expect(instance.swapCurrency(opts, 0n)).rejects.toThrow(
+          'Slippage percentage must be a valid number between 0 and 100.',
+        );
+        await expect(instance.swapCurrency(opts, 0n)).rejects.toThrow(ValidationError);
+      },
+    );
+
     it('should throw AmountTooLowError if amount is too small', async () => {
       vi.mocked(mockPolkadotApi.queryRuntimeApi)
         .mockResolvedValueOnce(100n)
