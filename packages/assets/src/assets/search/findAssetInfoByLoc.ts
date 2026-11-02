@@ -8,12 +8,18 @@ export const findAssetInfoByLoc = (
   foreignAssets: TAssetInfo[],
   location: string | TLocation
 ): TAssetInfo | undefined => {
-  if (typeof location === 'string') {
-    return foreignAssets.find(asset => compareLocations(location, asset))
+  const matches =
+    typeof location === 'string'
+      ? foreignAssets.filter(asset => compareLocations(location, asset))
+      : foreignAssets.filter(
+          asset =>
+            asset.location &&
+            deepEqual(canonicalizeLocation(location), canonicalizeLocation(asset.location))
+        )
+
+  if (matches.length > 1) {
+    throw new Error(`Duplicate asset location: ${JSON.stringify(location)}`)
   }
 
-  const normalizedLocation = canonicalizeLocation(location)
-  return foreignAssets.find(
-    asset => asset.location && deepEqual(normalizedLocation, canonicalizeLocation(asset.location))
-  )
+  return matches[0]
 }
